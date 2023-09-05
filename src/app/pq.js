@@ -1,4 +1,6 @@
 // Function to calculate the Euclidean distance between two vectors
+import conf from "@/app/data/conf.json";
+
 function euclideanDistance(vector1, vector2) {
     if (vector1.length !== vector2.length) {
         throw new Error('Vectors must have the same dimensionality for distance calculation.');
@@ -11,7 +13,6 @@ function euclideanDistance(vector1, vector2) {
 }
 
 function vq(obs, code_book) {
-    console.log("vq ", obs.length, code_book.length, Array.isArray(obs), Array.isArray(code_book))
     if (!obs || !Array.isArray(obs) || obs.length === 0 || !code_book || !Array.isArray(code_book) || code_book.length === 0) {
         throw new Error('Invalid input. Both observation and code_book must be non-empty arrays.');
     }
@@ -39,7 +40,6 @@ function vq(obs, code_book) {
 }
 
 function encode(vecs, codewords, Ds, M, code_dtype) {
-    console.log("encode ", vecs.length, codewords.length, Ds, M, code_dtype);
     // Check input requirements
     if (vecs.constructor !== Float32Array) {
         throw new Error("Input vectors must be of type Float32Array.");
@@ -79,7 +79,7 @@ function binarySearch(arr, target) {
 }
 
 // Function to compute indices of sorted distances between a query vector and a list of vectors
-function computeSortedIndices(queryVector, vectorList) {
+function computeSortedIndicesByDistance(queryVector, vectorList) {
     const distancesWithIndices = [];
     for (let i = 0; i < vectorList.length; i++) {
         const vector = vectorList[i];
@@ -95,8 +95,9 @@ function computeSortedIndices(queryVector, vectorList) {
     distancesWithIndices.sort((a, b) => a.distance - b.distance);
 
     // Extract and return the sorted indices
-    const sortedIndices = distancesWithIndices.map((item) => item.index);
-    return sortedIndices;
+    //const sortedIndices = distancesWithIndices.map((item) => item.index);
+    //return sortedIndices;
+    return distancesWithIndices;
 }
 
 
@@ -121,33 +122,69 @@ async function loadBinaryFile(filePath, vectorSize) {
 }
 
 
-function loadIndices(filePath) {
-  try {
-    // Read the binary file synchronously.
-    const data = fs.readFileSync(filePath);
-
-    const int64Values = [];
-
-    for (let i = 0; i < data.length; i += 8) {
-      // Extract 8 bytes (64 bits) from the binary data.
-      const binarySlice = data.slice(i, i + 8);
-
-      // Convert the binary data to a BigInt.
-      const int64Value = Number(BigInt('0x' + binarySlice.toString('hex')));
-
-      // Push the BigInt value to the array.
-      int64Values.push(int64Value);
+// Function to compute indices of sorted distances between a query vector and a list of vectors
+function get_indices(documents){
+    const indices = documents.map(doc => doc.nb_of_embeddings);
+    // Calculate cumulative sums
+    for (let i = 1; i < indices.length; i++) {
+      indices[i] += indices[i - 1];
     }
-
-    return int64Values;
-  } catch (error) {
-    console.error('Error reading or parsing the binary file:', error);
-    return [];
-  }
+    return indices;
 }
 
 
-export { encode, computeSortedIndices, loadBinaryFile, loadIndices, binarySearch };
+function feature_position_to_doc_id(distancesWithIndices, indices, max_results) {
+    const doc_ids_results = {};
+    const sortedIndices = distancesWithIndices.map((item) => item.index); // use dietance in a future version
+    let nb_of_feats = 0;
+    for (const i of sortedIndices) {
+        const doc_i = binarySearch(indices, i);
+        doc_ids_results[doc_i] = (doc_ids_results[doc_i] || 0) + 1;
+        nb_of_feats += 1;
+        if (Object.keys(doc_ids_results).length > max_results && nb_of_feats > max_results*max_results ) {
+            break;
+        }
+    }
+    return doc_ids_results;
+}
+
+function normalize(results) {
+    const total = Object.values(results).reduce((acc, val) => acc + val, 0);
+    const normalizedResults = {};
+    for (const key in results) {
+        normalizedResults[key] = results[key] / total;
+    }
+    return normalizedResults;
+}
+
+function enrich_metadata(sortedResults, documents) {
+    const enrichedResults = [];
+    sortedResults.forEach(([key, value], index) => {
+        const doc = documents[key];
+        enrichedResults.push({
+            rank: index,
+            score: value,
+            ...doc
+        });
+    });
+    return enrichedResults;
+}
+
+function search(documents, query, codewords, vectors, conf, max_results){
+    const indices = get_indices(documents);
+    let query_q = encode(query, codewords, conf['dim'] / conf['M'], conf['M'], Uint8Array);
+    const distancesWithIndices = computeSortedIndicesByDistance(query_q, vectors);
+    const results = feature_position_to_doc_id(distancesWithIndices, indices, max_results);
+    console.log(results);
+    const normalizedResults = normalize(results);
+    var items = Object.keys(normalizedResults).map((key) => { return [key, normalizedResults[key]] });
+    items.sort((first, second) => second[1] - first[1]);
+    console.log(items);
+    return enrich_metadata(items, documents);
+
+}
+
+export { search, loadBinaryFile };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //

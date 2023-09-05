@@ -60,8 +60,17 @@ export default function Home() {
             />
 
             {ready !== null && (
-                <pre className="p-2 rounded">
-      {(!ready || !result) ? 'Loading...' : JSON.stringify(result, null, 2)}
+                <pre className="p-2  w-full max-w-5xl  rounded">
+      {(!ready || !result) ? 'Loading...' :
+          result.map((item, index) => (
+              <div key={index}>
+                  <div className="font-bold">{item.rank} <br/></div>
+                  <div>{item.title}</div>
+                  <div>{item.score}</div>
+                  <hr/>
+              </div>
+          ))
+      }
     </pre>
             )}
         </main>
