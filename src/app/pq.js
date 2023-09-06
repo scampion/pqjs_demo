@@ -185,37 +185,3 @@ function search(documents, query, codewords, vectors, conf, max_results){
 }
 
 export { search, loadBinaryFile };
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// const conf = require('./conf.json');
-// const documents = require('./documents.json');
-// const indices = await loadIndices("indices.bin");
-// const vectors = await loadBinaryFile("pq.bin", conf['M']);
-// const codewords = require('./codewords.json');
-//
-// let transformer = await import("@xenova/transformers");
-// const model_name = conf['model'].split('/')[1];
-// const model = 'Xenova/' + model_name;
-// let pipeline = await transformer.pipeline('feature-extraction', model);
-//
-// let query = "Audiovisual rights in sports events"; // 599320
-// console.log("Query: " + query);
-//
-// let observation = await pipeline(query, {pooling: "mean", quantized: false, normalize: true});
-// // print first 40 values of the observation.data
-// for(let i = 0; i < 40; i++) {
-//     console.log(i + " : " + Math.floor(observation.data[i] * 1000));
-// }
-// let result = encode(observation.data, codewords, conf['dim'] / conf['M'], conf['M'], Uint8Array);
-// console.log(result);
-//
-// const sortedIndices = computeSortedIndices(result, vectors);
-/**
-for (let i = 0; i < 15; i++) {
-    let row = documents[indices[sortedIndices[i]]];
-    delete row.summary;
-    console.log(i + " : " + row.reference + " - " + row.title);
-}
-**/
-

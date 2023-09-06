@@ -63,11 +63,10 @@ export default function Home() {
                 <pre className="p-2  w-full max-w-5xl  rounded">
       {(!ready || !result) ? 'Loading...' :
           result.map((item, index) => (
-              <div key={index}>
-                  <div className="font-bold">{item.rank} <br/></div>
-                  <div>{item.title}</div>
-                  <div>{item.score}</div>
-                  <hr/>
+              <div>
+                  <div className="text-sm"><a href={item.url}>{item.title}</a> </div>
+                  <div className="text-xs">{Math.floor(item.score * 100) } %</div>
+                  <div><br/><hr/><br/></div>
               </div>
           ))
       }
