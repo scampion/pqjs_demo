@@ -1,5 +1,4 @@
 // Function to calculate the Euclidean distance between two vectors
-import conf from "@/app/data/conf.json";
 
 function euclideanDistance(vector1, vector2) {
     if (vector1.length !== vector2.length) {
@@ -175,7 +174,6 @@ function search(documents, query, codewords, vectors, conf, max_results){
     let query_q = encode(query, codewords, conf['dim'] / conf['M'], conf['M'], Uint8Array);
     const distancesWithIndices = computeSortedIndicesByDistance(query_q, vectors);
     const results = feature_position_to_doc_id(distancesWithIndices, indices, max_results);
-    console.log(results);
     const normalizedResults = normalize(results);
     var items = Object.keys(normalizedResults).map((key) => { return [key, normalizedResults[key]] });
     items.sort((first, second) => second[1] - first[1]);

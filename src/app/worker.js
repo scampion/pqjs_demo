@@ -1,14 +1,15 @@
 import { pipeline, env } from "@xenova/transformers";
 import {loadBinaryFile, encode, computeSortedIndices, binarySearch, get_indices, search} from './pq';
 
-import conf from "./data/conf.json";
-
 let response;
 response = await fetch('/documents.json');
 const documents = await response.json();
 
 response = await fetch('/codewords.json');
 const codewords = await response.json();
+
+response = await fetch('/conf.json');
+const conf = await response.json();
 
 const vectors = await loadBinaryFile("/pq.bin", conf['M']);
 
