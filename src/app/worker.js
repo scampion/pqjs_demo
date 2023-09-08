@@ -46,8 +46,7 @@ self.addEventListener('message', async (event) => {
 
     // Actually perform the classification
     let output = await extractor(event.data.text, { pooling: 'mean', normalize: true });
-    const results = search(documents, output.data, codewords, vectors, conf, 5);
-    console.log(JSON.stringify(results.length, null, 2));
+    const results = search(documents, output.data, codewords, vectors, conf, R);
     // Send the output back to the main thread
     self.postMessage({
         status: 'complete',

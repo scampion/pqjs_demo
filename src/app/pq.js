@@ -65,6 +65,16 @@ function  encode(vecs, codewords, Ds, M, code_dtype) {
     // Create an empty array to store the codes
     const codes = new code_dtype(M);
     // Loop through subspaces and encode
+    console.log(codewords[0][0])
+    console.log(vecs.subarray(0, Ds))
+    console.log("Distance " + euclideanDistance(codewords[0][0], vecs.subarray(0, Ds)))
+    console.log("Distance " + euclideanDistance(codewords[0][1], vecs.subarray(0, Ds)))
+    console.log("Distance " + euclideanDistance(codewords[0][2], vecs.subarray(0, Ds)))
+    console.log("Distance " + euclideanDistance(codewords[0][120], vecs.subarray(0, Ds)))
+    console.log("Distance " + euclideanDistance(codewords[0][121], vecs.subarray(0, Ds)))
+    console.log("VQ "+ vq(Array.from(vecs.subarray(24, 48)), codewords[0]).index)
+    console.log("VQ "+ vq(Array.from(vecs.subarray(24, 48)), codewords[0]).minDistance)
+    console.log("------")
     for (let m = 0; m < M; m++) {
         const vecs_sub = vecs.subarray(m * Ds, (m + 1) * Ds);
         const result = vq(Array.from(vecs_sub), codewords[m]);
@@ -184,15 +194,16 @@ function enrich_metadata(sortedResults, documents) {
     return enrichedResults;
 }
 
-function search(documents, query, codewords, vectors, conf, max_results){
+function search(documents, query, codewords, vectors, conf, R, max_results){
     const indices = get_indices(documents);
+    query = rotate(query, R);
     let query_q = encode(query, codewords, conf['dim'] / conf['M'], conf['M'], Uint8Array);
+    console.log("query_q " + query_q)
     const distancesWithIndices = computeSortedIndicesByDistance(query_q, vectors);
     const results = feature_position_to_doc_id(distancesWithIndices, indices, max_results);
     const normalizedResults = normalize(results);
     var items = Object.keys(normalizedResults).map((key) => { return [key, normalizedResults[key]] });
     items.sort((first, second) => second[1] - first[1]);
-    console.log(items);
     return enrich_metadata(items, documents);
 
 }
