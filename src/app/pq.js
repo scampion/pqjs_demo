@@ -11,6 +11,21 @@ function euclideanDistance(vector1, vector2) {
     return Math.sqrt(sum);
 }
 
+
+function rotate(vecs, R) { //to finish
+    if (!(vecs instanceof Float32Array)) {
+        throw new Error("Input vectors must be of type Float32Array");
+    }
+    console.log(R)
+    const results = new Float32Array(vecs.length);
+    for(let i = 0; i < vecs.length; i++) {
+        for (let j = 0; j < R.length; j++) {
+            results[i] += vecs[i] * R[j];
+        }
+    }
+    return results;
+}
+
 function vq(obs, code_book) {
     if (!obs || !Array.isArray(obs) || obs.length === 0 || !code_book || !Array.isArray(code_book) || code_book.length === 0) {
         throw new Error('Invalid input. Both observation and code_book must be non-empty arrays.');
@@ -24,7 +39,6 @@ function vq(obs, code_book) {
     for (let i = 1; i < code_book.length; i++) {
         const codeWord = code_book[i];
         const distance = euclideanDistance(obs, codeWord);
-
         if (distance < minDistance) {
             closestCodeWord = codeWord;
             closestIndex = i;
@@ -34,11 +48,12 @@ function vq(obs, code_book) {
     // Return the closest codeword and its index
     return {
         codeword: closestCodeWord,
+        minDistance: minDistance,
         index: closestIndex
     };
 }
 
-function encode(vecs, codewords, Ds, M, code_dtype) {
+function  encode(vecs, codewords, Ds, M, code_dtype) {
     // Check input requirements
     if (vecs.constructor !== Float32Array) {
         throw new Error("Input vectors must be of type Float32Array.");

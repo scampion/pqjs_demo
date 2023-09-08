@@ -38,7 +38,6 @@ export default function Home() {
 
         // Create a callback function for messages from the worker thread.
         const onMessageReceived = (e) => {
-            console.log(e.data)
             const PROGRESS = document.getElementById('progress');
             const PROGRESS_BARS = document.getElementById('progress-bars');
 

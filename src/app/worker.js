@@ -8,26 +8,13 @@ const documents = await response.json();
 response = await fetch('/codewords.json');
 const codewords = await response.json();
 
+response = await fetch('/R.json');
+const R = await response.json();
+
 response = await fetch('/conf.json');
 const conf = await response.json();
 
 const vectors = await loadBinaryFile("/pq.bin", conf['M']);
-
-// const model_name = conf['model'].split('/')[1];
-// const model = 'Xenova/' + model_name;
-//
-// let pp = await pipeline('feature-extraction', model);
-// let query = "Audiovisual rights in sports events"; // 599320
-//
-// console.log("Query: " + query);
-//
-// let observation = await pp(query, {pooling: "mean", quantized: true, normalize: true});
-//
-// const results = search(documents, observation.data, codewords, vectors, conf, 5);
-// console.log(JSON.stringify(results, null, 2));
-
-
-
 
 // Skip local model check
 env.allowLocalModels = false;
