@@ -114,6 +114,19 @@ function computeSortedIndicesByDistance(queryVector, vectorList) {
     return distancesWithIndices;
 }
 
+function argsort(array) {
+  // Create an array of indices [0, 1, 2, ...] for the input array
+  const indices = Array.from(array.keys());
+
+  // Sort the indices based on the values in the input array
+  indices.sort((a, b) => array[a] - array[b]);
+
+  return indices;
+}
+
+
+
+
 
 async function loadBinaryFile(filePath, vectorSize) {
     try {
@@ -147,12 +160,12 @@ function get_indices(documents){
 }
 
 
-function feature_position_to_doc_id(distancesWithIndices, indices, max_results) {
+function feature_position_to_doc_id(sortedIndices, indices, max_results) {
     const doc_ids_results = {};
-    const sortedIndices = distancesWithIndices.map((item) => item.index); // use dietance in a future version
+    //const sortedIndices = distancesWithIndices.map((item) => item.index); // use dietance in a future version
     let nb_of_feats = 0;
-    for (const i of sortedIndices) {
-        const doc_i = binarySearch(indices, i);
+    for (let i = 0; i < sortedIndices.length; i++) {
+        const doc_i = binarySearch(indices, sortedIndices[i]);
         doc_ids_results[doc_i] = (doc_ids_results[doc_i] || 0) + 1;
         nb_of_feats += 1;
         if (Object.keys(doc_ids_results).length > max_results && nb_of_feats > max_results*max_results ) {
@@ -184,15 +197,56 @@ function enrich_metadata(sortedResults, documents) {
     return enrichedResults;
 }
 
+function dtable(query, codewords, Ds, M, Ks) {
+  const D = query.length;
+  if (D !== Ds * M) {
+    throw new Error('Input dimension must be Ds * M');
+  }
+  // Create an empty distance table
+  const dtable = new Array(M);
+  for (let m = 0; m < M; m++) {
+    dtable[m] = new Float32Array(Ks);
+  }
+  // Calculate distances
+  for (let m = 0; m < M; m++) {
+    const querySub = query.subarray(m * Ds, (m + 1) * Ds);
+    for (let ks = 0; ks < Ks; ks++) {
+      // Replace metric_function_map with the appropriate metric function
+      dtable[m][ks] = euclideanDistance(querySub, codewords[m][ks]);
+    }
+  }
+  return dtable;
+}
+
+function adist(codes, dtable) {
+  // Check input dimensions
+  if (codes.length === 0 || codes[0].length !== dtable.length) {
+    throw new Error('Invalid input dimensions');
+  }
+  const N = codes.length;
+  // Compute Asymmetric Distances
+  const dists = new Float32Array(N);
+  for (let n = 0; n < N; n++) {
+    dists[n] = 0;
+    for (let m = 0; m < dtable.length; m++) {
+      dists[n] += dtable[m][codes[n][m]];
+    }
+  }
+  return dists;
+}
+
+
 function search(documents, query, codewords, vectors, conf, max_results){
     const indices = get_indices(documents);
-    let query_q = encode(query, codewords, conf['dim'] / conf['M'], conf['M'], Uint8Array);
-    const distancesWithIndices = computeSortedIndicesByDistance(query_q, vectors);
-    const results = feature_position_to_doc_id(distancesWithIndices, indices, max_results);
+    //let query_q = encode(query, codewords, conf['dim'] / conf['M'], conf['M'], Uint8Array);
+    const dist_table = dtable(query, codewords,conf['dim'] / conf['M'], conf['M'], conf['Ks']);
+    const distances = adist(vectors, dist_table);
+    const indices_sorted = argsort(distances)
+    console.log(indices_sorted);
+    const results = feature_position_to_doc_id(indices_sorted, indices, max_results);
     const normalizedResults = normalize(results);
     var items = Object.keys(normalizedResults).map((key) => { return [key, normalizedResults[key]] });
     items.sort((first, second) => second[1] - first[1]);
-    console.log(items);
     return enrich_metadata(items, documents);
 
 }
