@@ -1,9 +1,10 @@
-all: out
+all: docs
 
-out:
+docs:
 	@./node_modules/.bin/next build
+	@mv out docs
 
 clean:
-	@rm -rf out
+	@rm -rf out docs
 
 
