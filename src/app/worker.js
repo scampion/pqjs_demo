@@ -8,9 +8,6 @@ const documents = await response.json();
 response = await fetch('/codewords.json');
 const codewords = await response.json();
 
-response = await fetch('/R.json');
-const R = await response.json();
-
 response = await fetch('/conf.json');
 const conf = await response.json();
 
@@ -26,7 +23,7 @@ class PipelineSingleton {
     static instance = null;
 
     static async getInstance(progress_callback = null) {
-        let quantized = false;
+        let quantized = true;
         if (this.instance === null) {
             this.instance = pipeline(this.task, this.model, {quantized,  progress_callback });
         }
