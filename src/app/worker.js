@@ -1,17 +1,19 @@
 import { pipeline, env } from "@xenova/transformers";
 import {loadBinaryFile, encode, computeSortedIndices, binarySearch, get_indices, search} from './pq';
+import { usePathname } from 'next/navigation'
+
 
 let response;
-response = await fetch('./documents.json');
+response = await fetch('/pqjs_demo/documents.json');
 const documents = await response.json();
 
-response = await fetch('./codewords.json');
+response = await fetch('/pqjs_demo/codewords.json');
 const codewords = await response.json();
 
-response = await fetch('./conf.json');
+response = await fetch('/pqjs_demo/conf.json');
 const conf = await response.json();
 
-const vectors = await loadBinaryFile("./pq.bin", conf['M']);
+const vectors = await loadBinaryFile("/pqjs_demo/pq.bin", conf['M']);
 
 // Skip local model check
 env.allowLocalModels = false;
