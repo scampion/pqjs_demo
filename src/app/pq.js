@@ -254,7 +254,6 @@ function search(documents, query, codewords, vectors, conf, max_results){
     const dist_table = dtable(query, codewords,conf['dim'] / conf['M'], conf['M'], conf['Ks']);
     const distances = adist(vectors, dist_table);
     const indices_sorted = argsort(distances)
-    console.log(indices_sorted);
     const results = feature_position_to_doc_id(indices_sorted, indices, max_results);
     const normalizedResults = normalize(results);
     var items = Object.keys(normalizedResults).map((key) => { return [key, normalizedResults[key]] });

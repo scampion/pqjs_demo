@@ -4,25 +4,37 @@ import {useState, useEffect, useRef, useCallback} from 'react'
 
 
 function htmlToElement(html) {
-  // https://stackoverflow.com/a/35385518
-  let template = document.createElement('template');
-  html = html.trim(); // Never return a text node of whitespace as the result
-  template.innerHTML = html;
-  return template.content.firstChild;
+    // https://stackoverflow.com/a/35385518
+    let template = document.createElement('template');
+    html = html.trim(); // Never return a text node of whitespace as the result
+    template.innerHTML = html;
+    return template.content.firstChild;
 }
 
 function formatBytes(bytes, decimals = 0) {
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-  if (bytes === 0) return "0 Bytes";
-  const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1000)), 10);
-  const rounded = (bytes / Math.pow(1000, i)).toFixed(decimals);
-  return rounded + " " + sizes[i];
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    if (bytes === 0) return "0 Bytes";
+    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1000)), 10);
+    const rounded = (bytes / Math.pow(1000, i)).toFixed(decimals);
+    return rounded + " " + sizes[i];
 }
 
 export default function Home() {
     const [result, setResult] = useState(null);
     const [ready, setReady] = useState(null);
 
+    const [metadata, setData] = useState(null)
+    const [isLoading, setLoading] = useState(true)
+
+    useEffect(() => {
+        fetch('/metadata.json')
+            .then((res) => res.json())
+            .then((metadata) => {
+                console.log(metadata)
+                setData(metadata)
+                setLoading(false)
+            })
+    }, [])
 
     // Create a reference to the worker object.
     const worker = useRef(null);
@@ -44,7 +56,7 @@ export default function Home() {
             switch (e.data.status) {
                 case 'initiate':
                     setReady(false);
-                    if ( e.data.file ) {
+                    if (e.data.file) {
                         PROGRESS.classList.remove('hidden');
                         PROGRESS_BARS.appendChild(htmlToElement(`
                                 <div class="progress w-100" model="${e.data.name}" file="${e.data.file}">
@@ -79,7 +91,6 @@ export default function Home() {
 
         // Attach the callback function as an event listener.
         worker.current.addEventListener('message', onMessageReceived);
-
         // Define a cleanup function for when the component is unmounted.
         return () => worker.current.removeEventListener('message', onMessageReceived);
     });
@@ -92,13 +103,14 @@ export default function Home() {
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center p-12">
-            <h1 className="text-5xl font-bold mb-5 text-center">Neural Search</h1>
-            <h2 className="text-2xl mb-10 text-center">Edge AI</h2>
-
-            <div id="progress" className="col-12 mt-4 w-full hidden" >
+            <h1 className="text-5xl font-bold mb-5 text-center">PQ JS</h1>
+            <h2 className="text-2xl mb-10 text-center">Transformer-based Embedding Retrieval with Product Quantization
+                for Edge Computing</h2>
+            Enter a text to search for similar documents (~ 100 characters)
+            <div id="progress" className="col-12 mt-4 w-full hidden">
                 <div className="d-flex align-items-center position-relative py-2">
                     <div><strong>Loading model files...</strong> (only run once)</div>
-                    <div className="spinner-border position-absolute" role="status" aria-hidden="true" >
+                    <div className="spinner-border position-absolute" role="status" aria-hidden="true">
                     </div>
                 </div>
 
@@ -116,17 +128,34 @@ export default function Home() {
 
             {ready !== null && (
                 <pre className="p-2  w-full max-w-5xl  rounded">
-      {(!ready || !result) ? 'Loading...' :
-          result.map((item, index) => (
-              <div>
-                  <div className="text-sm"><a href={item.url}>{item.title}</a> </div>
-                  <div className="text-xs">{Math.floor(item.score * 100) } %</div>
-                  <div><br/><hr/><br/></div>
-              </div>
-          ))
-      }
+
+                    {(!ready || !result) ? 'Loading...' :
+                        result.map((item, index) => (
+                            <div>
+                                <div className="text-sm"><a href={item.url}>{item.title}</a></div>
+                            </div>
+
+                        ))
+                    }
+
     </pre>
             )}
+            {(!ready || !result) ? 'Loading...' :
+                (<div className="text-xs text-left ">
+                    <br/>
+                    <div>Execution query time: {Math.floor(result.time)} milliseconds</div>
+                </div>)
+            }
+            <hr/>
+            <div className="text-xs text-center">
+                {(isLoading) ? 'Loading...' :
+                    (<div className="text-xs text-left ">
+                        <div>Number of documents: {metadata.nb_of_documents}</div>
+                        <div>Number of vectors: {metadata.nb_of_embeddings.toLocaleString("en-US")}</div>
+                    </div>)
+
+                }
+            </div>
         </main>
     )
 }

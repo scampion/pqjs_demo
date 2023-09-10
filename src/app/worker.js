@@ -1,19 +1,18 @@
 import { pipeline, env } from "@xenova/transformers";
-import {loadBinaryFile, encode, computeSortedIndices, binarySearch, get_indices, search} from './pq';
-import { usePathname } from 'next/navigation'
+import {loadBinaryFile, encode, binarySearch, get_indices, search} from './pq';
 
 
 let response;
-response = await fetch('/pqjs_demo/documents.json');
+response = await fetch('/documents.json');
 const documents = await response.json();
 
-response = await fetch('/pqjs_demo/codewords.json');
+response = await fetch('/codewords.json');
 const codewords = await response.json();
 
-response = await fetch('/pqjs_demo/conf.json');
+response = await fetch('/conf.json');
 const conf = await response.json();
 
-const vectors = await loadBinaryFile("/pqjs_demo/pq.bin", conf['M']);
+const vectors = await loadBinaryFile("/pq.bin", conf['M']);
 
 // Skip local model check
 env.allowLocalModels = false;
@@ -45,12 +44,21 @@ self.addEventListener('message', async (event) => {
 
     // Actually perform the classification
     let output = await extractor(event.data.text, { pooling: 'mean', normalize: true });
+   // mesure time execution
+    const start = performance.now();
     const results = search(documents, output.data, codewords, vectors, conf, 5);
-    console.log(JSON.stringify(results.length, null, 2));
+    results['time'] = performance.now() - start;
     // Send the output back to the main thread
     self.postMessage({
         status: 'complete',
         output: results,
     });
 });
+
+// a self function module to return the nb of documents
+function metadata(){
+    return documents.length;
+}
+
+
 
