@@ -289,7 +289,6 @@ function search(documents, query, codewords, vectors, conf, max_results){
     const distances = adist(vectors, dist_table);
     const results = _search(distances, indices, documents, 25);
     return results;
-
 }
 
 export { search, loadBinaryFile };
