@@ -30,7 +30,6 @@ export default function Home() {
         fetch('/metadata.json')
             .then((res) => res.json())
             .then((metadata) => {
-                console.log(metadata)
                 setData(metadata)
                 setLoading(false)
             })
@@ -127,20 +126,20 @@ export default function Home() {
             />
 
             {ready !== null && (
-                <pre className="p-2  w-full max-w-5xl  rounded">
-
+                <div className="p-2  w-full max-w-5xl  rounded">
+                    <ul className="list-decimal">
                     {(!ready || !result) ? 'Loading...' :
                         result.map((item, index) => (
-                            <div>
-                                <div className="text-sm"><a href={item.url}>{item.title}</a></div>
-                            </div>
+                            <li className="text-xl">
+                                <a href={item.url}>{item.title}</a><br/>
+                            </li>
 
                         ))
                     }
-
-    </pre>
+</ul>
+    </div>
             )}
-            {(!ready || !result) ? 'Loading...' :
+            {(!ready || !result) ? '' :
                 (<div className="text-xs text-left ">
                     <br/>
                     <div>Execution query time: {Math.floor(result.time)} milliseconds</div>
