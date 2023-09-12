@@ -119,9 +119,13 @@ export default function Home() {
 
             <textarea
                 className="resize w-full max-w-5xl p-4 border rounded mb-8 dark:text-black"
-                placeholder="Enter text here"
-                onInput={e => {
-                    search(e.target.value);
+                placeholder="Enter text here and submit with Ctrl+Enter"
+                onKeyDown={e => {
+                    //test if key is enter
+                    console.log(e);
+                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                        search(e.target.value);
+                    }
                 }}
             />
 

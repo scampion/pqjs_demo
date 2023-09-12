@@ -36,6 +36,7 @@ class PipelineSingleton {
 self.addEventListener('message', async (event) => {
     // Retrieve the classification pipeline. When called for the first time,
     // this will load the pipeline and save it for future use.
+    console.log("Worker received message ", event.data.text);
     let extractor = await PipelineSingleton.getInstance(x => {
         // We also add a progress callback to the pipeline so that we can
         // track model loading.
